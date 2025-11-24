@@ -1,0 +1,147 @@
+
+CREATE TABLE admin (
+    username VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    designation VARCHAR(100) NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    profile_url VARCHAR(255)
+);
+
+
+CREATE TABLE farmer (
+    F_ID VARCHAR(50) PRIMARY KEY,
+    f_name VARCHAR(500) NOT NULL,
+    m_name VARCHAR(50),
+    l_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    phone2 VARCHAR(15),
+    email VARCHAR(100) UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    province VARCHAR(50),
+    district VARCHAR(50),
+    municipal VARCHAR(50),
+    ward VARCHAR(10),
+    tole VARCHAR(100),
+    about TEXT,
+    WhatsApp VARCHAR(15),
+    Facebook VARCHAR(200),
+    join_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    profile_url VARCHAR(255)
+);
+
+
+CREATE TABLE consumer (
+    C_ID VARCHAR(50) PRIMARY KEY,
+    f_name VARCHAR(500) NOT NULL,
+    m_name VARCHAR(50),
+    l_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    profile_url VARCHAR(255)
+);
+
+
+CREATE TABLE wallet (
+    wallet_ID VARCHAR(50) PRIMARY KEY,
+    F_ID VARCHAR(50) UNIQUE NOT NULL,
+    amount DECIMAL(10,2) DEFAULT 0.00,
+    FOREIGN KEY (F_ID) REFERENCES farmer(F_ID) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE verification (
+    V_ID VARCHAR(50) PRIMARY KEY,
+    F_ID VARCHAR(50) UNIQUE NOT NULL,
+    status VARCHAR(20) DEFAULT 'Pending',
+    submission_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    approved_date TIMESTAMP WITH TIME ZONE, -- Stores actual approval time
+    approved_by VARCHAR(50),
+    FOREIGN KEY (F_ID) REFERENCES farmer(F_ID) ON DELETE CASCADE,
+    FOREIGN KEY (approved_by) REFERENCES admin(username) ON DELETE SET NULL
+);
+
+
+CREATE TABLE product (
+    P_ID VARCHAR(50) PRIMARY KEY,
+    F_ID VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100),
+    organic VARCHAR(40) DEFAULT 'non-organic',
+    quantity_available INTEGER NOT NULL,
+    cost_per_unit DECIMAL(10, 2) NOT NULL,
+    produced_date DATE,
+    registered_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    description TEXT,
+    delivery_option VARCHAR(100) DEFAULT 'not-available',
+    FOREIGN KEY (F_ID) REFERENCES farmer(F_ID) ON DELETE CASCADE
+);
+
+CREATE TABLE product_media (
+    media_ID SERIAL PRIMARY KEY,
+    P_ID VARCHAR(50) NOT NULL,
+    media_url VARCHAR(255) NOT NULL,
+    media_type VARCHAR(10),
+    FOREIGN KEY (P_ID) REFERENCES product(P_ID) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE order_request (
+    order_ID VARCHAR(50) PRIMARY KEY,
+    C_ID VARCHAR(50) NOT NULL,
+    order_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    total_cost DECIMAL(10, 2) NOT NULL,
+    fulfillment_status VARCHAR(20) DEFAULT 'PLACED',
+    shipping_address TEXT,
+    FOREIGN KEY (C_ID) REFERENCES consumer(C_ID) ON DELETE RESTRICT
+);
+
+
+CREATE TABLE ord_prod_link (
+    order_ID VARCHAR(50) NOT NULL,
+    P_ID VARCHAR(50) NOT NULL,
+    quantity INTEGER NOT NULL,
+    price_at_sale DECIMAL(10, 2) NOT NULL,
+    PRIMARY KEY (order_ID, P_ID),
+    FOREIGN KEY (order_ID) REFERENCES order_request(order_ID) ON DELETE CASCADE,
+    FOREIGN KEY (P_ID) REFERENCES product(P_ID) ON DELETE RESTRICT
+);
+
+
+CREATE TABLE transaction (
+    transaction_ID VARCHAR(50) PRIMARY KEY,
+    order_ID VARCHAR(50) UNIQUE NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    transaction_id_gateway VARCHAR(100),
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    transaction_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_ID) REFERENCES order_request(order_ID) ON DELETE CASCADE
+);
+
+
+CREATE TABLE farmer_rating (
+    R_ID VARCHAR(50) PRIMARY KEY,
+    F_ID VARCHAR(50) NOT NULL,
+    C_ID VARCHAR(50) NOT NULL,
+    score INTEGER NOT NULL,
+    comment TEXT,
+    "date" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (F_ID) REFERENCES farmer(F_ID) ON DELETE CASCADE,
+    FOREIGN KEY (C_ID) REFERENCES consumer(C_ID) ON DELETE RESTRICT
+);
+
+
+CREATE TABLE product_rating (
+    PRating_ID VARCHAR(50) PRIMARY KEY,
+    P_ID VARCHAR(50) NOT NULL,
+    C_ID VARCHAR(50) NOT NULL,
+    score INTEGER NOT NULL,
+    comment TEXT,
+    "date" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (P_ID) REFERENCES product(P_ID) ON DELETE CASCADE,
+    FOREIGN KEY (C_ID) REFERENCES consumer(C_ID) ON DELETE RESTRICT
+);
